@@ -1,12 +1,13 @@
-import fs from "fs";
-import inquirer from "inquirer";
-import generatePage from "./src/page-template.js";
+const inquirer = require("inquirer");
+const generatePage = require("./src/page-template");
+const { writeFile, copyFile } = require("./utils/generate-site");
+
 const promptUser = () => {
   return inquirer.prompt([
     {
       type: "input",
       name: "name",
-      message: "What is your name?(Required)",
+      message: "What is your name? (Required)",
       validate: (nameInput) => {
         if (nameInput) {
           return true;
@@ -19,7 +20,7 @@ const promptUser = () => {
     {
       type: "input",
       name: "github",
-      message: "Enter your GitHub username(Required)",
+      message: "Enter your GitHub Username (Required)",
       validate: (githubInput) => {
         if (githubInput) {
           return true;
@@ -44,19 +45,24 @@ const promptUser = () => {
     },
   ]);
 };
+
 const promptProject = (portfolioData) => {
-  console.log(`Add a New Project`);
-  //if theres no 'projects' array property, create one
+  console.log(`
+=================
+Add a New Project
+=================
+`);
+
+  // If there's no 'projects' array property, create one
   if (!portfolioData.projects) {
     portfolioData.projects = [];
   }
-
   return inquirer
     .prompt([
       {
         type: "input",
         name: "name",
-        message: "What is the name of your project?(Required)",
+        message: "What is the name of your project? (Required)",
         validate: (nameInput) => {
           if (nameInput) {
             return true;
@@ -66,11 +72,10 @@ const promptProject = (portfolioData) => {
           }
         },
       },
-
       {
         type: "input",
         name: "description",
-        message: "Provide a description of the project?(Required)",
+        message: "Provide a description of the project (Required)",
         validate: (descriptionInput) => {
           if (descriptionInput) {
             return true;
@@ -83,7 +88,7 @@ const promptProject = (portfolioData) => {
       {
         type: "checkbox",
         name: "languages",
-        message: "What did you build this project with?(Check all that apply)",
+        message: "What did you this project with? (Check all that apply)",
         choices: [
           "JavaScript",
           "HTML",
@@ -97,7 +102,7 @@ const promptProject = (portfolioData) => {
       {
         type: "input",
         name: "link",
-        message: "Enter the GitHub link to your project(Required)",
+        message: "Enter the GitHub link to your project. (Required)",
         validate: (linkInput) => {
           if (linkInput) {
             return true;
@@ -110,7 +115,7 @@ const promptProject = (portfolioData) => {
       {
         type: "confirm",
         name: "feature",
-        message: "Would you like to feature this project",
+        message: "Would you like to feature this project?",
         default: false,
       },
       {
@@ -129,17 +134,22 @@ const promptProject = (portfolioData) => {
       }
     });
 };
+
 promptUser()
   .then(promptProject)
   .then((portfolioData) => {
-    console.log(portfolioData);
-    // will be uncommented in lesson 4
-    const pageHTML = generatePage(portfolioData);
-    fs.writeFile("./index.html", pageHTML, (err) => {
-      if (err) throw new Error(err);
-
-      console.log(
-        "Page created! Check out index.html in this directory to see it!"
-      );
-    });
+    return generatePage(portfolioData);
+  })
+  .then((pageHTML) => {
+    return writeFile(pageHTML);
+  })
+  .then((writeFileResponse) => {
+    console.log(writeFileResponse);
+    return copyFile();
+  })
+  .then((copyFileResponse) => {
+    console.log(copyFileResponse);
+  })
+  .catch((err) => {
+    console.log(err);
   });
